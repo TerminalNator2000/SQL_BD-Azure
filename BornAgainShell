@@ -1,0 +1,4 @@
+#Bash Command
+#Using Born Again Shell type {} + enter
+
+pip install pyodbc pandas azure-storage-blob

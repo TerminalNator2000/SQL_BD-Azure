@@ -1,0 +1,64 @@
+#Py3 script
+import pyodbc
+import pandas as pd
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+import os
+
+# SQL database connection details
+sql_server = 'your_sql_server'
+sql_database = 'your_sql_database'
+sql_username = 'your_sql_username'
+sql_password = 'your_sql_password'
+sql_driver = '{ODBC Driver 17 for SQL Server}'  # Make sure this driver is installed
+
+# Azure Data Lake (Blob Storage) connection details
+azure_storage_account_name = 'your_storage_account_name'
+azure_storage_account_key = 'your_storage_account_key'
+azure_container_name = 'your_container_name'
+
+# SQL query to extract data
+sql_query = 'SELECT * FROM your_table_name'
+
+# Local file path to temporarily store the exported data
+local_csv_path = 'exported_data.csv'
+
+def extract_data_from_sql():
+    # Set up the SQL connection
+    connection_string = f'DRIVER={sql_driver};SERVER={sql_server};DATABASE={sql_database};UID={sql_username};PWD={sql_password}'
+    conn = pyodbc.connect(connection_string)
+    
+    # Read the data into a pandas DataFrame
+    df = pd.read_sql(sql_query, conn)
+    conn.close()
+    
+    # Save the data to a CSV file locally
+    df.to_csv(local_csv_path, index=False)
+    print("Data extracted and saved locally as CSV.")
+
+def upload_to_azure_datalake():
+    # Set up the blob service client
+    connection_string = f'DefaultEndpointsProtocol=https;AccountName={azure_storage_account_name};AccountKey={azure_storage_account_key};EndpointSuffix=core.windows.net'
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    
+    # Get the container client
+    container_client = blob_service_client.get_container_client(azure_container_name)
+    
+    # Upload the CSV file
+    blob_client = container_client.get_blob_client('exported_data.csv')
+    with open(local_csv_path, "rb") as data:
+        blob_client.upload_blob(data, overwrite=True)
+    
+    print("CSV file uploaded to Azure Data Lake.")
+
+if __name__ == "__main__":
+    try:
+        extract_data_from_sql()
+        upload_to_azure_datalake()
+        print("Data migration completed successfully.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        # Clean up the local CSV file if it exists
+        if os.path.exists(local_csv_path):
+            os.remove(local_csv_path)
+            print("Temporary CSV file removed.")

@@ -1,4 +1,4 @@
-# SQL_BD-Azure
+# SQL_DB-Azure
 Explanation
 SQL Connection and Data Extraction:
 

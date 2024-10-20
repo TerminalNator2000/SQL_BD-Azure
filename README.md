@@ -2,7 +2,7 @@
 Explanation
 SQL Connection and Data Extraction:
 
-The script connects to the SQL database using pyodbc.
+The script connects to the On-Prem SQL database using pyodbc.
 It reads data using a SQL query and saves the result as a CSV file locally.
 Azure Data Lake Upload:
 
